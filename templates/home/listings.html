@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+{% block title %}My listings | KugiHub{% endblock %}
+{% block content %}
+<div class="dashboard-shell employer-dashboard">
+    {% include 'partials/employer_sidebar.html' with active='listings' %}
+    <main class="dashboard-main">
+        <header class="dashboard-header">
+            <div><p class="kicker dashboard-kicker">YOUR POSTINGS</p><h1>My <strong>listings.</strong></h1><p class="dashboard-subtitle">Every job you have posted, in one place.</p></div>
+            <a class="button-primary employer-post-button header-button" href="{% url 'home:post_job' %}">Post a new job <span>＋</span></a>
+        </header>
+
+        <section class="page-column">
+            <nav class="tab-row" aria-label="Filter by status">
+                {% for tab in tabs %}<a class="tab{% if tab.key == current %} is-active{% endif %}" href="{% url 'home:listings' %}{% if tab.key != 'all' %}?status={{ tab.key }}{% endif %}">{{ tab.label }} <small>{{ tab.count }}</small></a>{% endfor %}
+            </nav>
+            {% for job in jobs %}
+            <article class="job-card employer-job-card">
+                <div class="job-card-top"><span class="status-pill status-{{ job.status }}">{{ job.get_status_display }}</span><span class="job-time">Posted {{ job.posted_at|timesince }} ago</span></div>
+                <h3><a href="{% url 'home:job_detail' job.pk %}">{{ job.title }}</a></h3>
+                <p class="job-client">{{ job.location }} · ₱{{ job.fee_amount|floatformat:"-2" }} {{ job.get_fee_type_display|lower }}{% if job.start_date %} · starts {{ job.start_date|date:"M j" }}{% endif %}</p>
+                <div class="job-card-footer">
+                    <span class="client-rating">{{ job.app_count }} application{{ job.app_count|pluralize }}{% if job.pending_count %} · {{ job.pending_count }} waiting for you{% endif %}</span>
+                    <span class="card-links">
+                        {% if job.status == 'open' %}<a class="text-link" href="{% url 'home:job_edit' job.pk %}">Edit</a>{% endif %}
+                        <a class="text-link" href="{% url 'home:job_detail' job.pk %}">View applicants →</a>
+                    </span>
+                </div>
+            </article>
+            {% empty %}
+            <article class="job-card empty-state"><h3>{% if current == 'all' %}No listings yet{% else %}Nothing here{% endif %}</h3><p class="job-client">{% if current == 'all' %}Post your first job to start receiving applications.{% else %}You have no jobs with this status.{% endif %}</p></article>
+            {% endfor %}
+        </section>
+    </main>
+</div>
+{% endblock %}

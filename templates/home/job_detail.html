@@ -1,0 +1,59 @@
+{% extends 'base.html' %}
+{% block title %}{{ job.title }} | KugiHub{% endblock %}
+{% block content %}
+<div class="dashboard-shell employer-dashboard">
+    {% include 'partials/employer_sidebar.html' with active='listings' %}
+    <main class="dashboard-main">
+        <header class="dashboard-header">
+            <div><p class="kicker dashboard-kicker"><a href="{% url 'home:listings' %}">← MY LISTINGS</a></p><h1>{{ job.title }}</h1><p class="dashboard-subtitle"><span class="status-pill status-{{ job.status }}">{{ job.get_status_display }}</span> &nbsp;Posted {{ job.posted_at|timesince }} ago</p></div>
+            <div class="header-actions">
+                {% if can_edit %}<a class="job-button" href="{% url 'home:job_edit' job.pk %}">Edit job</a>{% endif %}
+                {% if job.status == 'assigned' %}<form method="post" action="{% url 'home:job_advance' job.pk %}">{% csrf_token %}<button type="submit" class="job-button">Mark in progress</button></form>{% endif %}
+                {% if job.status == 'in_progress' %}<form method="post" action="{% url 'home:job_advance' job.pk %}">{% csrf_token %}<button type="submit" class="job-button">Mark completed</button></form>{% endif %}
+                {% if can_cancel %}<form method="post" action="{% url 'home:job_cancel' job.pk %}" onsubmit="return confirm('Cancel this job? This cannot be undone.');">{% csrf_token %}<button type="submit" class="job-button job-button-danger">Cancel job</button></form>{% endif %}
+            </div>
+        </header>
+
+        <section class="employer-content">
+            <div class="jobs-column">
+                <div class="section-heading"><div><p class="kicker dashboard-kicker">APPLICANTS</p><h2>{{ applicants|length }} applicant{{ applicants|length|pluralize }}</h2></div></div>
+                {% for a in applicants %}
+                <article class="job-card applicant-card{% if a.application.status == 'accepted' %} job-card-featured{% endif %}">
+                    <div class="job-card-top"><span class="status-pill status-{{ a.application.status }}">{{ a.application.get_status_display }}</span><span class="job-time">Applied {{ a.application.applied_at|timesince }} ago</span></div>
+                    <div class="profile-summary"><span class="large-avatar">{{ a.name|slice:":1"|upper }}</span><div><h3>{{ a.name }}</h3><p>{{ a.worker.headline|default:"Skilled worker" }}</p></div></div>
+                    {% if a.application.message %}<p class="applicant-message">“{{ a.application.message }}”</p>{% endif %}
+                    <div class="job-details">
+                        <span>★ {{ a.worker.trust_score }} trust ({{ a.worker.review_count }} review{{ a.worker.review_count|pluralize }})</span>
+                        <span>◷ {{ a.worker.years_experience }} yr{{ a.worker.years_experience|pluralize }} experience</span>
+                        {% if skill_total %}<span>▣ {{ a.matched }} of {{ skill_total }} required skills</span>{% endif %}
+                    </div>
+                    {% if a.application.status == 'pending' and can_decide %}
+                    <div class="job-card-footer">
+                        <form method="post" action="{% url 'home:application_decide' a.application.pk 'reject' %}">{% csrf_token %}<button type="submit" class="link-button">Decline</button></form>
+                        <form method="post" action="{% url 'home:application_decide' a.application.pk 'accept' %}">{% csrf_token %}<button type="submit" class="job-button">Accept <span>→</span></button></form>
+                    </div>
+                    {% endif %}
+                </article>
+                {% empty %}
+                <article class="job-card empty-state"><h3>No applicants yet</h3><p class="job-client">Workers who apply will show up here, with their trust score and how well their skills match.</p></article>
+                {% endfor %}
+            </div>
+
+            <aside class="dashboard-right">
+                <section class="profile-card">
+                    <div class="profile-card-heading"><h2>Job details</h2></div>
+                    <p class="detail-description">{{ job.description|linebreaksbr }}</p>
+                    <dl class="detail-list">
+                        <div><dt>Location</dt><dd>{{ job.location }}</dd></div>
+                        <div><dt>Fee</dt><dd>₱{{ job.fee_amount|floatformat:"-2" }} · {{ job.get_fee_type_display|lower }}</dd></div>
+                        {% if job.start_date %}<div><dt>Start date</dt><dd>{{ job.start_date|date:"F j, Y" }}</dd></div>{% endif %}
+                        {% if job.assigned_worker %}<div><dt>Assigned to</dt><dd>{{ job.assigned_worker.worker.get_full_name }}</dd></div>{% endif %}
+                        {% if job.completed_at %}<div><dt>Completed</dt><dd>{{ job.completed_at|date:"F j, Y" }}</dd></div>{% endif %}
+                    </dl>
+                    <div class="skill-list">{% for s in skills %}<span>{{ s.skill_name }}</span>{% empty %}<span>No specific skills required</span>{% endfor %}</div>
+                </section>
+            </aside>
+        </section>
+    </main>
+</div>
+{% endblock %}

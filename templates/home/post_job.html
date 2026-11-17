@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+{% block title %}{% if job %}Edit job{% else %}Post a job{% endif %} | KugiHub{% endblock %}
+{% block content %}
+<div class="dashboard-shell employer-dashboard">
+    {% include 'partials/employer_sidebar.html' with active=active_nav %}
+    <main class="dashboard-main">
+        <header class="dashboard-header"><div>
+            {% if job %}
+            <p class="kicker dashboard-kicker">EDIT LISTING</p><h1>Edit <strong>job.</strong></h1><p class="dashboard-subtitle">Update the details for "{{ job.title }}".</p>
+            {% else %}
+            <p class="kicker dashboard-kicker">NEW LISTING</p><h1>Post a <strong>job.</strong></h1><p class="dashboard-subtitle">Describe the work and set a clear fee.</p>
+            {% endif %}
+        </div></header>
+        <form method="post" class="auth-form job-form" novalidate>
+            {% csrf_token %}
+            {% for e in form.non_field_errors %}<p class="form-error">{{ e }}</p>{% endfor %}
+            {% for field in form %}
+                {% if field.name == 'skills' %}
+                <label>{{ field.label }}</label>
+                <div class="skill-checks">{{ field }}</div>
+                {% else %}
+                <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                {{ field }}
+                {% endif %}
+                {% for e in field.errors %}<p class="form-error">{{ e }}</p>{% endfor %}
+            {% endfor %}
+            <button type="submit" class="button-primary">{% if job %}Save changes{% else %}Publish job{% endif %} <span>＋</span></button>
+            <p class="form-switch"><a href="{% if job %}{% url 'home:job_detail' job.pk %}{% else %}{% url 'home:employer' %}{% endif %}">Cancel</a></p>
+        </form>
+    </main>
+</div>
+{% endblock %}

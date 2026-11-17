@@ -1,0 +1,14 @@
+<aside class="dashboard-sidebar">
+    <a class="dashboard-brand" href="{% url 'home:home' %}"><span class="brand-mark" aria-hidden="true"></span><span>Kugi<span>Hub</span></span></a>
+    <nav class="dashboard-nav" aria-label="Main navigation">
+        <a class="dashboard-nav-link{% if active == 'dashboard' %} is-active{% endif %}" href="{% url 'home:home' %}"><span>▦</span> Dashboard</a>
+        <a class="dashboard-nav-link" href="{% url 'home:home' %}#jobs"><span>＋</span> Find work</a>
+        <a class="dashboard-nav-link{% if active == 'skills' %} is-active{% endif %}" href="{% url 'home:skills' %}"><span>✦</span> My skills</a>
+        <a class="dashboard-nav-link{% if active == 'applications' %} is-active{% endif %}" href="{% url 'home:my_applications' %}"><span>▤</span> My applications</a>
+        <a class="dashboard-nav-link" href="{% url 'home:home' %}#profile"><span>○</span> My profile</a>
+    </nav>
+    <div class="sidebar-bottom">
+        <p class="sidebar-label">YOUR ACCOUNT</p>
+        <form method="post" action="{% url 'accounts:logout' %}">{% csrf_token %}<button type="submit" class="dashboard-nav-link logout-button"><span>↪</span> Log out</button></form>
+    </div>
+</aside>
